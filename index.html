@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kamus Maritim (Ruang Mesin)</title>
+    <!-- Memuat Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Menggunakan font Inter sebagai standar */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Style untuk highlight teks pencarian */
+        .highlight {
+            background-color: #fde047; /* Tailwind yellow-300 */
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div class="container max-w-3xl mx-auto p-4 sm:p-6 md:p-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-blue-800 mb-2">
+                Glosarium Bahasa Inggris Maritim
+            </h1>
+            <p class="text-lg text-gray-600">
+                Kamus Berbasis Korpus untuk Terminologi Ruang Mesin
+            </p>
+        </header>
+
+        <!-- Search Bar -->
+        <div class="mb-6">
+            <input type="search" id="search-input"
+                   placeholder="Cari istilah (mis: Boiler, Piston, RPM)..."
+                   class="w-full p-4 border border-gray-300 rounded-lg shadow-sm text-lg
+                          focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none
+                          transition duration-200">
+        </div>
+
+        <!-- Dictionary List -->
+        <div id="dictionary-list" class="space-y-4">
+            <!-- Entri kamus akan dimasukkan di sini oleh JavaScript -->
+        </div>
+
+        <!-- No Results Message -->
+        <div id="no-results" class="text-center text-gray-500 text-lg py-10 hidden">
+            <p>Istilah tidak ditemukan.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // Data korpus mentah yang Anda berikan
+        const rawData = `
+Boiler — ketel uap untuk menghasilkan uap — “Check boiler pressure.”
+Blowing down — pembuangan endapan boiler — “Perform blowing down now.”
+Christmas tree — susunan katup/panel injeksi — “Inspect the Christmas tree.”
+Dead slow — kecepatan mesin sangat pelan — “Reduce to dead slow.”
+Pigging — pembersihan pipa dengan pig — “Schedule pigging for fuel line.”
+Stand by engine — perintah siaga mesin — “Stand by engine, prepare.”
+Stop engine — perintah menghentikan mesin — “Stop engine immediately.”
+Bank (of engines) — grup mesin bersamaan — “Switch bank if needed.”
+Auxiliary engine — mesin bantu listrik — “Start auxiliary engine.”
+Main engine — mesin utama propulsi — “Main engine RPM stable.”
+Lube oil — minyak pelumas mesin — “Check lube oil level.”
+Fuel oil — bahan bakar mesin kapal — “Verify fuel oil grade.”
+Injection pump — pompa injeksi bahan bakar — “Calibrate injection pump.”
+Fuel injector — nozzle penyemprot bahan bakar — “Clean the injector.”
+Turbocharger — penambah tekanan udara masuk — “Turbocharger shows vibration.”
+Condenser — mengembunkan uap menjadi cair — “Condenser fouled, clean it.”
+Scavenge fire — kebakaran ruang scavenge — “Report scavenge fire immediately.”
+Bilge — ruang pengumpul air bawah kapal — “Monitor bilge alarm.”
+Ballast — air pemberat stabilitas kapal — “Adjust ballast tanks.”
+Bunker — stok bahan bakar kapal — “Check bunker quantity.”
+Draft — kedalaman kapal terbenam — “Read draft marks.”
+RPM — putaran per menit mesin — “Maintain RPM within limits.”
+Governor — pengatur otomatis RPM — “Governor malfunction detected.”
+Shaft — poros penghubung ke baling-baling — “Check shaft alignment.”
+Coupling — sambungan poros/transmisi — “Replace damaged coupling.”
+Bearing — bantalan poros — “Overheated bearing noted.”
+Piston — komponen silinder bergerak — “Piston rings worn.”
+Crankcase — ruang engkol dan oli — “Crankcase ventilation needed.”
+Manifold — saluran kolektor fluida/gas — “Exhaust manifold cracked.”
+Injection timing — waktu injeksi bahan bakar — “Adjust injection timing.”
+Soot blower — alat pembersih jelaga boiler — “Activate soot blower.”
+Feedwater — air suplai boiler — “Check feedwater quality.”
+Economizer — pemulih panas boiler — “Clean economizer.”
+Superheater — pemanas uap tambahan — “Superheater tube leak.”
+Gasket — sealant untuk mencegah kebocoran — “Replace flange gasket.”
+Bearing clearance — jarak kerja bantalan — “Measure bearing clearance.”
+Overhaul — perbaikan besar/rekondisi — “Major overhaul planned.”
+Maintenance interval — jadwal servis berkala — “Respect maintenance interval.”
+Logbook — buku catatan operasi — “Record event in logbook.”
+Anomaly — ketidakwajaran operasi — “Report any anomaly.”
+Alarm — sinyal peringatan sistem — “Engine alarm active.”
+Emergency stop (E-STOP) — hentikan darurat — “Press E-STOP now.”
+Fire pump — pompa pemadam kebakaran — “Test the fire pump.”
+Hydraulic system — sistem hidrolik — “Hydraulic pressure low.”
+Piping — jaringan pipa — “Inspect piping integrity.”
+Flange — sambungan pipa berulir/rantai — “Tighten flange bolts.”
+Valve — katup pengatur aliran — “Close valve slowly.”
+Check valve — katup satu arah — “Check valve stuck open.”
+Gate valve — katup pintu buka-tutup — “Operate the gate valve.”
+Globe valve — katup pengatur aliran presisi — “Slightly open globe valve.”
+Relief valve — katup pelepas tekanan — “Relief valve opened.”
+Safety valve — katup keselamatan tekanan — “Safety valve tested.”
+Strainer — saringan mekanis — “Clean the strainer.”
+Fuel separator — separator air/dirt dari bahan bakar — “Drain fuel separator.”
+Centrifuge — alat pemisah partikel — “Run centrifuge for oil.”
+Separator bowl — mangkok pada centrifuge — “Inspect separator bowl.”
+Sump — kolam/ruang penampung cairan — “Check oil sump level.”
+Scavenge system — sistem pembuangan udara buangan — “Scavenge blower failed.”
+Air cooler — pendingin udara mesin — “Air cooler clogged.”
+Heat exchanger — pertukaran panas cairan/gas — “Heat exchanger efficiency low.”
+Cooling water — air pendingin — “Cooling water temp rising.”
+Seawater pump — pompa air laut pendingin — “Seawater pump primed.”
+Freshwater generator — pembuat air tawar — “Freshwater generator online.”
+RO plant — reverse osmosis plant — “RO plant producing water.”
+Scavenge port — lubang pembuangan gas sisa — “Inspect scavenge port.”
+Exhaust — sistem pembuangan gas — “Exhaust temperature high.”
+Muffler — peredam suara knalpot — “Replace damaged muffler.”
+Silencer — peredam kebisingan — “Check silencer mounts.”
+Turbo lag — penundaan respon turbo — “Observe turbo lag during start.”
+Wastegate — katup pembuangan tekanan turbo — “Wastegate stuck closed.”
+Charge air cooler — pendingin udara terkompresi — “Charge air cooler leak.”
+Fuel tank — tangki bahan bakar — “Fuel tank vent blocked.”
+Bunkering — proses pengisian bahan bakar — “Bunkering operations complete.”
+Sludge — endapan kental/limbah — “Remove sludge from tank.”
+Viscosity — kekentalan fluida — “Check oil viscosity.”
+Flash point — titik nyala bahan bakar — “Record flash point value.”
+Sulphur content — kandungan belerang bahan bakar — “Measure sulphur content.”
+Emission control — pengendalian emisi — “Verify emission control devices.”
+SCR (Selective Catalytic Reduction) — sistem pengurangan NOx — “SCR catalyst operational.”
+EGR (Exhaust Gas Recirculation) — resirkulasi gas buang — “EGR cooler cooled.”
+Ballast water treatment — pengolahan ballast — “BWT system functioning.”
+Oily water separator (OWS) — memisah minyak-air — “OWS alarm active.”
+Oil content meter (OCM) — meter kandungan minyak — “OCM reading exceeds limit.”
+MARPOL — konvensi pengendalian pencemaran laut — “Comply with MARPOL rules.”
+ISM Code — kode manajemen keselamatan kapal — “Follow ISM procedures.”
+SMS (Safety Management System) — sistem manajemen keselamatan — “Update SMS record.”
+PPE (Personal Protective Equipment) — alat pelindung diri — “Wear PPE in engine room.”
+Lockout-tagout (LOTO) — prosedur penguncian alat — “Apply LOTO before repair.”
+Confined space — ruang terbatas berbahaya — “Permit required for confined space.”
+Gas detector — alat deteksi gas berbahaya — “Gas detector alarm.”
+CO (Carbon Monoxide) — gas beracun CO — “CO level high.”
+H2S (Hydrogen Sulfide) — gas beracun H₂S — “H2S detected, evacuate.”
+Oxygen meter — meter oksigen — “O₂ concentration low.”
+Ventilation — sistem sirkulasi udara — “Ensure adequate ventilation.”
+Hot work permit — ijin kerja panas (las, cutting) — “Hot work permit issued.”
+Fire watch — pengawas kebakaran saat kerja panas — “Assign fire watch.”
+CO₂ system — sistem pemadam CO₂ — “CO₂ system discharged.”
+Foam system — sistem busa pemadam — “Foam system pressurized.”
+Hydrant — pos pompa kebakaran — “Test engine room hydrant.”
+Firemain — pipa utama pemadam — “Firemain pressure low.”
+Watchkeeping — tugas jaga bergilir — “Engine room watchkeeping duty.”
+Chief engineer — kepala ruang mesin — “Inform chief engineer.”
+Second engineer — wakil kepala mesin — “Second engineer on duty.”
+Engine cadet — magang ruang mesin — “Engine cadet assigned task.”
+Motorman — operator mesin — “Motorman inspects pumps.”
+Oiler — petugas pelumas — “Oiler topping up lube oil.”
+Electrical engineer — teknisi kelistrikan — “Call electrical engineer.”
+Fitting — komponen pipa/perlengkapan — “Replace fitting at flange.”
+Fastener — baut/mur pengikat — “Secure all fasteners.”
+Torque — momen puntir — “Apply correct torque.”
+Vibration analysis — analisis getaran — “Run vibration analysis.”
+Thermography — pemeriksaan suhu inframerah — “Thermography shows hotspots.”
+Ultrasonic testing (UT) — pengujian ultrasonik — “UT for weld inspection.”
+Magnetic particle testing (MT) — pengujian partikel magnetik — “MT identifies cracks.”
+Radiography (RT) — pengujian radiografi — “RT scheduled for pipe weld.”
+NDT (Non-Destructive Testing) — pengujian tanpa merusak — “Perform NDT on shaft.”
+Dry dock — perawatan kapal di galangan kering — “Dry dock next month.”
+Sea trial — uji coba di laut — “Sea trial success confirmed.”
+Class survey — inspeksi klasifikasi kapal — “Class survey due.”
+Classification society — lembaga klasifikasi kapal — “Notify classification society.”
+Flag state — negara bendera kapal — “Comply with flag state regulations.”
+Port state control — pengawasan negara pelabuhan — “PSC inspection passed.”
+Certificate of class — sertifikat klasifikasi — “Certificate of class valid.”
+Certificate of seaworthiness — sertifikat laik laut — “Keep seaworthiness documents.”
+Oil record book — buku catatan minyak — “Log transfer in oil record book.”
+Garbage record book — buku catatan sampah kapal — “Record garbage disposal.”
+Cargo pump — pompa untuk kargo cair — “Cargo pump primed.”
+Cargo manifold — manifold pengisian kargo — “Connect to cargo manifold.”
+Cargo vapor — uap kargo — “Monitor cargo vapor levels.”
+Inert gas system (IGS) — sistem gas inert — “IGS pressure stable.”
+Tank cleaning — pembersihan tangki — “Tank cleaning completed.”
+Slop tank — tangki limbah minyak — “Slop tank capacity low.”
+Cargo heater — pemanas kargo — “Cargo heater operational.”
+Cargo temperature — suhu kargo — “Record cargo temperature hourly.”
+Crude oil washing (COW) — pencucian minyak mentah — “COW system serviced.”
+Moisture content — kandungan kelembaban — “Check moisture content sample.”
+Hydrometer — alat ukur densitas cairan — “Use hydrometer for sample.”
+Viscometer — alat ukur viskositas — “Viscometer reading stable.”
+Sampling port — port sampel — “Collect sample from sampling port.”
+Bilge alarm — alarm air bilge — “Bilge alarm triggered.”
+Pump shaft seal — segel poros pompa — “Replace pump shaft seal.”
+Mechanical seal — segel mekanik pada pompa — “Mechanical seal leaking.”
+Packing gland — packing untuk segel poros — “Tighten packing gland.”
+Stuffing box — ruang packing poros — “Inspect stuffing box.”
+Shaft alignment — penyelarasan poros — “Correct shaft alignment.”
+Propeller (screw) — baling-baling kapal — “Propeller pitch adjusted.”
+Pitch — sudut langkah baling-baling — “Propeller pitch change.”
+Rudder — pengarah kapal — “Rudder angle set.”
+Steering gear — sistem kemudi — “Steering gear tested.”
+Emergency steering — sistem kemudi darurat — “Switch to emergency steering.”
+Trim — perbedaan draft depan-belakang — “Adjust trim for stability.”
+List — kemiringan lateral kapal — “Correct list by ballast.”
+Center of gravity (KG) — titik berat kapal — “Compute KG for loading.”
+Metacentric height (GM) — ukuran stabilitas kapal — “GM within safe limits.”
+Hydrostatic table — tabel hidrostatik kapal — “Consult hydrostatic tables.”
+Loadline (Plimsoll mark) — tanda muat aman kapal — “Check loadline before departure.”
+Cargo securing — pengikatan kargo — “Ensure cargo securing done.”
+Lashing — pengikat kargo — “Lashing tension checked.”
+Dunnage — bahan alas kargo — “Place dunnage under cargo.”
+Stowage plan — rencana penempatan kargo — “Follow stowage plan.”
+RO-RO — roll-on/roll-off cargo type — “RO-RO operation scheduled.”
+Container spreader — alat angkut kontainer — “Inspect container spreader.”
+Gangway — pintu naik-turun awak — “Secure gangway.”
+Mooring — penambatan kapal — “Prepare mooring lines.”
+Berth — tempat sandar — “Proceed to berth 5.”
+Fender — penyangga antara kapal-dok — “Check fender condition.”
+Winch — alat gulung kabel/tali — “Operate mooring winch.”
+Capstan — alat untuk menarik tali — “Use capstan for mooring.”
+Bollard — tonggak tambat di dermaga — “Pass line to bollard.”
+Tug — kapal penolong — “Tug assisting docking.”
+Towline — tali tunda — “Secure towline.”
+Pilot ladder — tangga pilot — “Rig pilot ladder.”
+Gangplank — papan naik-turun penumpang — “Lower the gangplank.”
+Freeboard — jarak antara air dan dek — “Calculate freeboard.”
+ATO (Automatic Transfer Option) — transfer otomatis — “Check ATO status.”
+Manual operation — operasi manual — “Switch to manual operation.”
+PLC (Programmable Logic Controller) — pengendali logika terprogram — “PLC program updated.”
+SCADA — sistem kontrol dan akuisisi data — “SCADA displays alarms.”
+HMI (Human Machine Interface) — antarmuka operator — “Update HMI screen.”
+Instrumentation — alat ukur dan kontrol — “Calibration of instrumentation.”
+Transmitter — pengirim sinyal sensor — “Replace pressure transmitter.”
+Receiver — penerima sinyal — “Receiver not responding.”
+Setpoint — nilai target kontrol — “Adjust temperature setpoint.”
+PID controller — pengendali proporsional-integra-derivatif — “Tune PID controller.”
+Deadband — zona tanpa respon kontrol — “Set deadband minimal.”
+Hysteresis — perbedaan respon kontrol — “Hysteresis affects accuracy.”
+Calibration — penyesuaian akurasi alat — “Calibration due next week.”
+Span — rentang pengukuran sensor — “Check sensor span.”
+Zero point — titik nol pengukuran — “Reset zero point.”
+Thermocouple — sensor suhu termokopel — “Replace faulty thermocouple.”
+RTD (Resistance Temperature Detector) — sensor suhu RTD — “RTD reading stable.”
+Pressure gauge — alat ukur tekanan — “Pressure gauge reads 6 bar.”
+Manometer — alat ukur tekanan cairan — “Manometer shows leak.”
+Flow meter — pengukur laju aliran — “Flow meter calibrated.”
+Orifice plate — piringan pengukur aliran — “Inspect orifice plate.”
+Ultrasonic flow meter — flow meter ultrasonik — “Ultrasonic flow meter online.”
+Magnetic flow meter — flow meter magnetik — “Mag meter maintenance.”
+Turbine flow meter — flow meter turbin — “Turbine meter replaced.”
+Pitot tube — alat ukur tekanan dinamis — “Pitot tube blocked.”
+Differential pressure (DP) — selisih tekanan — “DP across filter high.”
+Filter — penyaring partikel — “Replace coarse filter.”
+Coalescer — pemisah tetesan cairan — “Coalescer efficiency degraded.”
+Cartridge filter — filter cartridge — “Change cartridge filter.”
+Micron rating — nilai partikel minimum saringan — “Use 10 micron filter.”
+Backflush — pembilasan balik filter — “Perform backflush procedure.”
+Bypass valve — katup bypass aliran — “Bypass valve activated.”
+Pump cavitation — kavitasi pompa — “Pump cavitation observed.”
+NPSH (Net Positive Suction Head) — head hisap bersih — “Ensure adequate NPSH.”
+Priming — mengisi pompa sebelum start — “Prime the pump.”
+Bleeding — mengeluarkan udara dari sistem — “Bleed air from line.”
+Suction strainer — saringan hisap — “Clean suction strainer.”
+Discharge — aliran keluar pompa — “Check discharge pressure.”
+Recirculation — sirkulasi ulang fluida — “Recirculation valve open.”
+Variable frequency drive (VFD) — pengendali kecepatan motor — “VFD fault present.”
+Soft starter — starter motor bertahap — “Use soft starter at startup.”
+Motor winding — kumparan motor — “Motor winding insulation tested.”
+Insulation resistance — resistansi isolasi — “Measure insulation resistance.”
+Circuit breaker — pemutus sirkuit — “Trip circuit breaker reset.”
+Overload relay — relay proteksi beban lebih — “Overload relay tripped.”
+Earthing (grounding) — pembumian listrik — “Check earthing continuity.”
+Phase sequence — urutan fase listrik — “Verify phase sequence.”
+Voltage regulator — pengatur tegangan — “Voltage regulator adjusted.”
+Generator — pembangkit listrik — “Start emergency generator.”
+Alternator — alternator listrik — “Alternator output stable.”
+Exciter — sistem eksitasi generator — “Exciter malfunction reported.”
+Synchronizing — penyelarasan generator ke jaringan — “Synchronize the generator.”
+Load sharing — pembagian beban antar generator — “Activate load sharing.”
+Blackout — kehilangan total daya — “Prepare blackout recovery.”
+UPS (Uninterruptible Power Supply) — penyedia daya tak terputus — “UPS battery low.”
+Battery bank — kumpulan baterai — “Battery bank charging.”
+Battery charger — pengisi baterai — “Battery charger fault.”
+Earthing switch — saklar pembumian — “Open earthing switch after work.”
+Harmonics — distorsi gelombang listrik — “Harmonics causing heating.”
+Frequency — frekuensi listrik (Hz) — “Frequency stable at 50 Hz.”
+Transformer — trafo tegangan — “Transformer oil levels OK.”
+Busbar — rel penghubung listrik — “Inspect busbar for hot spots.”
+Panel board — panel listrik kontrol — “Panel board locked.”
+Cable tray — trek kabel — “Secure cable tray.”
+Cable gland — segel kabel masuk panel — “Tighten cable gland.”
+Junction box — kotak sambungan kabel — “Junction box sealed.”
+Insulation class — kelas isolasi panas — “Motor insulation class F.”
+Rotor — bagian berputar mesin listrik — “Rotor balance checked.”
+Stator — bagian diam mesin listrik — “Stator winding tested.”
+Commutator — komutator pada motor DC — “Clean commutator surface.”
+Brushes — sikat listrik — “Replace worn brushes.”
+Slip rings — cincin selip listrik — “Inspect slip rings.”
+Thermal overload — proteksi panas motor — “Thermal overload reset.”
+Arc flash — ledakan busur listrik — “Arc flash risk assessed.”
+Locking pin — pen pengunci mekanis — “Insert locking pin.”
+Safety interlock — pengunci keselamatan otomatis — “Safety interlock engaged.”
+Bearing housing — rumah bantalan — “Bearing housing greased.”
+Grease nipple (Zerk) — nipol pelumasan — “Lubricate via grease nipple.”
+Grease gun — alat pompa gemuk — “Use grease gun properly.”
+Oil mist lubricator — pelumasan mist oli — “Oil mist flow nominal.”
+Splash lubrication — pelumasan percikan — “Splash lubrication sufficient.”
+Forced lubrication — pelumasan paksa dengan pompa — “Forced lubrication pump failed.”
+Oil cooler — pendingin oli — “Oil cooler blocked.”
+Breather — ventilasi tangki/gearbox — “Clean breather cap.”
+Oil purifier — pembersih oli — “Run oil purifier after sampling.”
+Viscosity index — indikator kestabilan viskositas — “Viscosity index documented.”
+Oxidation — oksidasi oli — “Oxidation level high.”
+Additives — bahan tambahan oli — “Check additive compatibility.”
+Neutralization number (TAN/TBN) — ukuran keasaman/basa oli — “TAN increased.”
+Contamination — kontaminasi oli — “Filter contamination present.”
+Particle count — jumlah partikel dalam oli — “Particle count elevated.”
+Wear metals — logam aus terlarut dalam oli — “Wear metals analysis done.”
+Oil analysis — analisis sampel oli — “Send oil sample for analysis.”
+Fuel analysis — analisis kualitas bahan bakar — “Fuel analysis indicates water.”
+Water content — kandungan air dalam oli/bahan bakar — “Water content beyond limit.”
+Sulfation — penumpukan sulfat pada baterai — “Battery sulfation noted.”
+Electrolysis — korosi listrik pada logam di air — “Electrolysis causing corrosion.”
+Cathodic protection — perlindungan korosi listrik — “Check cathodic protection system.”
+Anode consumption — pengorbanan anoda — “Anode consumption monitored.”
+Hull fouling — pertumbuhan organisme pada lambung — “Hull fouling increases drag.”
+Anti-fouling paint — cat anti-pertumbuhan — “Reapply anti-fouling paint.”
+Sacrificial anode — anoda korosi korban — “Replace sacrificial anodes.”
+Sea chest — kotak masuk air laut — “Sea chest strainers checked.”
+Scupper — lubang pembuangan dek — “Clear scupper blockages.”
+Weathertight — tahan cuaca (rapat) — “Ensure weathertight integrity.”
+Watertight — tahan air (rapat) — “Watertight door secured.”
+Hatch cover — penutup palka — “Inspect hatch cover seals.”
+Coaming — bingkai palka untuk mencegah masuk air — “Check coaming for damage.”
+Scupper plug — penutup scupper — “Remove scupper plug before voyage.”
+Freeing port — lubang pembuangan air palka — “Keep freeing ports clear.”
+Deck drain — saluran pembuangan dek — “Deck drain unblocked.”
+Bulwark — dinding pelindung sisi kapal — “Inspect bulwark integrity.”
+Toe rail — rel pengaman deck — “Secure toe rail fittings.”
+Safety net — jaring keselamatan — “Install safety net during work.”
+Life raft — sekoci darurat — “Life raft serviced.”
+Life jacket (PFD) — jaket keselamatan — “Wear life jacket on deck.”
+Lifeboat — perahu penyelamat — “Lower lifeboat for drill.”
+MOB (Man Overboard) — orang jatuh ke laut — “Activate MOB procedure.”
+EPIRB (Emergency Position Indicating Radio Beacon) — suara suar darurat posisi — “EPIRB battery expiry checked.”
+SART (Search and Rescue Transponder) — transponder SAR — “SART tested.”
+Distress signal — sinyal bahaya — “Send distress signal if necessary.”
+Mayday — panggilan bahaya maritim — “Mayday sent on VHF channel 16.”
+PAN-PAN — panggilan darurat non-immediate — “Issue PAN-PAN for medical case.”
+VHF (Very High Frequency) — radio VHF — “Monitor VHF channel 16.”
+MF/HF radio — radio frekuensi menengah/tinggi — “Test MF/HF radio.”
+GMDSS (Global Maritime Distress & Safety System) — sistem keselamatan maritim global — “GMDSS equipment maintained.”
+NAVTEX — penerima berita maritim otomatis — “NAVTEX received forecast.”
+AIS (Automatic Identification System) — sistem identifikasi kapal otomatis — “AIS transmitting vessel data.”
+Transponder — pemancar/penerima sinyal — “Transponder switched on.”
+Radar — sistem deteksi permukaan — “Radar shows target at 2 nm.”
+Echo sounder — pengukur kedalaman — “Echo sounder reads 30 m.”
+Gyrocompass — kompas giroskopik — “Gyrocompass aligned.”
+Magnetic compass — kompas magnetik — “Check magnetic compass deviation.”
+Chart — peta navigasi — “Plot course on chart.”
+ECDIS (Electronic Chart Display & Info System) — sistem peta elektronik — “Update ECDIS charts.”
+Pilotage — navigasi lokal menggunakan pilot — “Pilotage required in harbor.”
+Harbor master — otoritas pelabuhan — “Notify harbor master arrival.”
+Traffic separation scheme (TSS) — skema pemisahan lalu lintas laut — “Follow TSS lanes.”
+COLREGs — aturan pelayaran internasional — “Adhere to COLREGs.”
+Safe speed — kecepatan aman berlayar — “Maintain safe speed in fog.”
+Sound signals — sinyal suara kapal — “Signal one prolonged blast.”
+Passing arrangement — rencana lewat kapal berpapasan — “Arrange passing starboard-to-starboard.”
+Keep clear — jaga jarak — “Alter course to keep clear.”
+Stand on vessel — kapal yang mempertahankan haluan — “You are stand on vessel.”
+Give way vessel — kapal yang harus mengalah — “You must be the give way vessel.”
+Anchoring — proses melempar jangkar — “Prepare for anchoring.”
+Anchor watch — jaga saat berlabuh — “Assign anchor watch.”
+Chain locker — ruang penyimpanan rantai jangkar — “Inspect chain locker.”
+Windlass — mesin pengangkat jangkar — “Windlass in operation.”
+Anchor rode — rantai dan kabel jangkar — “Pay out anchor rode slowly.”
+Scope — perbandingan panjang rantai vs kedalaman — “Use 7:1 scope when anchoring.”
+Swing circle — area putaran kapal saat berlabuh — “Check swing circle for obstacles.”
+Ground tackle — peralatan jangkar keseluruhan — “Inspect ground tackle.”
+Mooring plan — rencana tambat — “Follow mooring plan in port.”
+Foul anchor — jangkar tersangkut benda bawah — “Foul anchor requires cutting.”
+Heaving line — tali lempar untuk tambatan — “Throw heaving line to shore.”
+Tension — tegangan tali/rantai — “Monitor mooring line tension.”
+Slack — kelonggaran tali/rantai — “Take up slack gradually.”
+Snubber — peredam pada rantai jangkar — “Inspect snubber on chain.”
+Warping — manuver kapal dengan tali — “Warp the vessel into position.”
+Heaving around — menggulung rantai jangkar — “Heaving around to pull anchor.”
+Wind effect — pengaruh angin pada kapal — “Compensate for wind effect.”
+Current effect — pengaruh arus laut — “Account for current effect.”
+Underkeel clearance (UKC) — jarak aman antara lambung dan dasar — “Maintain minimum UKC.”
+** squat** — penurunan kapal saat melaju di perairan dangkal — “Reduce speed to prevent squat.”
+Bank suction — gaya hisap saat berlayar dekat tepi — “Beware bank suction near channel.”
+Interaction — interaksi hidrodinamik antar kapal — “Interaction caused course change.”
+Wake — jejak gelombang kapal — “Avoid excessive wake near shore.”
+Yaw — gerak belok sekitar vertikal — “Increase rudder to correct yaw.”
+Yaw damper — perangkat meredam yaw — “Yaw damper active.”
+Course over ground (COG) — arah sebenarnya di darat — “COG set to 090°.”
+Speed over ground (SOG) — kecepatan relatif terhadap tanah — “SOG 12.5 knots.”
+Track — lintasan yang ditempuh kapal — “Follow planned track.”
+Waypoint — titik navigasi — “Set next waypoint.”
+DR (Dead Reckoning) — navigasi tanpa pengamatan posisi — “Plot DR position hourly.”
+Celestial navigation — navigasi menggunakan benda langit — “Practice celestial navigation.”
+Sextant — alat ukur sudut benda langit — “Use sextant at dawn.”
+Chronometer — jam presisi navigasi — “Set chronometer accurately.”
+Latitude — garis bujur — “Latitude 07° S.”
+Longitude — garis lintang — “Longitude 112° E.”
+Bearing — arah relatif ke objek — “Take bearing to buoy.”
+Relative bearing — bearing relatif ke haluan kapal — “Relative bearing 045°.”
+Magnetic deviation — penyimpangan kompas magnetik — “Record deviation table.”
+Variation — perbedaan antara utara magnetik dan geografis — “Variation 2° W.”
+Rhumb line — lintasan putus-putus konstan kompas — “Plot rhumb line course.”
+Great circle — lintasan lingkaran besar — “Great circle shortest route.”
+Tidal stream — arus pasang surut — “Consult tidal stream atlas.”
+Tidal height — ketinggian pasang surut — “Tidal height 3.2 m.”
+Tide table — tabel pasang surut — “Check tide table before entry.”
+Pilotage chart — peta navigasi pelabuhan — “Study pilotage chart.”
+Leading lights — sinyal pandu alignment — “Align leading lights for approach.”
+Buoyage — sistem rambu laut — “Follow buoyage system.”
+Cardinal marks — tanda kardinal arah bahaya — “Pass east of cardinal marks.”
+Lateral marks — tanda sisi alur — “Keep red lateral mark on starboard.”
+Isolated danger mark — tanda bahaya terisolasi — “Avoid isolated danger mark.”
+Safe water mark — tanda perairan aman — “Pass safe water mark centrally.”
+Special mark — tanda area khusus — “Note special mark for pipeline.”
+Light sector — sektor cahaya mercusuar — “Steer within light sector.”
+Range — jarak penglihatan objek — “Range to target 1.2 nm.”
+Radar reflector — pemantul radar — “Deploy radar reflector.”
+SAA (Safe Approach Angle) — sudut pendekatan aman — “Maintain SAA on approach.”
+CPA (Closest Point of Approach) — titik pendekatan terdekat — “CPA 0.5 nm — reduce speed.”
+TCPA (Time to CPA) — waktu ke CPA — “TCPA 6 minutes.”
+Range ring — cincin jarak pada radar — “Set range ring to 1 nm.”
+Headway — kecepatan maju efektif — “Headway lost in strong current.”
+Hydrographic survey — survei batimetri — “Hydrographic survey data updated.”
+Underwater obstruction — halangan bawah air — “Mark underwater obstruction.”
+Seabed composition — jenis dasar laut — “Seabed composition mostly sand.”
+Sounding — pengukuran kedalaman — “Take sounding frequently.”
+Lead line — tali timah pengukur kedalaman manual — “Use lead line near shore.”
+Echo sounder log — catatan kedalaman digital — “Save echo sounder log.”
+Hydrostatic pressure — tekanan hidrostatik — “Account for hydrostatic pressure.”
+Metocean — data meteorologi dan oseanografi — “Check metocean forecast.”
+Swell — ombak panjang — “Swell direction north-west.”
+Sea state — kondisi gelombang — “Sea state moderate.”
+Beaufort scale — skala kekuatan angin — “Wind force 6 on Beaufort scale.”
+Fetch — jarak angin berhembus tanpa hambatan — “Long fetch produced large waves.”
+Gale — angin kencang — “Gale warning issued.”
+Visibility — jarak pandang — “Visibility reduced to 0.5 nm.”
+Fog signal — sinyal kabut — “Sound fog signal at intervals.”
+Storm warning — peringatan badai — “Storm warning in effect.”
+Squall — hembusan angin tiba-tiba — “Squall line approaching.”
+Barometer — alat ukur tekanan atmosfer — “Barometer falling rapidly.”
+Anemometer — alat ukur kecepatan angin — “Anemometer reads 30 knots.”
+Wind vane — indikator arah angin — “Wind vane pointing north.”
+Wave period — periode gelombang — “Wave period 8 seconds.”
+Seakeeping — kemampuan kapal menghadapi gelombang — “Seakeeping reduced in head seas.”
+Motion sickness — mual karena gerak kapal — “Crew suffers motion sickness.”
+Anti-rolling tank — tangki penstabil roll — “Anti-rolling tank operational.”
+Stabilizer fins — sirip penstabil — “Deploy stabilizer fins.”
+Ballast control system — sistem kontrol ballast — “Ballast control automated.”
+Draft survey — penghitungan muatan melalui draft — “Conduct draft survey.”
+Loading computer — sistem komputer muatan — “Loading computer updated.”
+Strength calculation — perhitungan kekuatan struktural — “Complete strength calculation.”
+Global loadline — aturan muat internasional — “Comply with global loadline.”
+Damage stability — stabilitas saat kerusakan — “Damage stability computations done.”
+Residual strength — kekuatan struktur sisa — “Assess residual strength after collision.”
+Scantling — dimensi komponen struktural — “Check scantling requirements.”
+Weld — las sambungan struktur — “Inspect weld quality.”
+Butt weld — las sambungan ujung-ke-ujung — “Butt weld passed NDT.”
+Fillet weld — las sudut — “Fillet weld toe corrosion.”
+Weld seam — garis las — “Crack along weld seam.”
+Corrosion — proses pengkaratan logam — “Corrosion in bilge area.”
+Cathodic protection — perlindungan korosi listrik — “Anodes replaced for cathodic protection.”
+Coating — lapisan pelindung — “Apply protective coating.”
+Surface preparation — persiapan permukaan sebelum cat — “Blast for surface preparation.”
+Blasting — peledakan pasir/abrasi untuk pembersihan — “Perform abrasive blasting.”
+Primer — cat dasar — “Apply primer coat.”
+Top coat — lapisan akhir cat — “Top coat applied evenly.”
+Dry film thickness (DFT) — ketebalan film kering — “Measure DFT after curing.”
+Holiday test — uji celah cat — “Conduct holiday test.”
+Seawater corrosion — korosi akibat air laut — “Monitor seawater corrosion rate.”
+Pitting — korosi berbentuk lubang kecil — “Pitting found on hull.”
+Crevice corrosion — korosi di celah sempit — “Crevice corrosion in bilge.”
+Galvanic corrosion — korosi akibat elektrochemistry logam berbeda — “Prevent galvanic corrosion with isolators.”
+Anode — elektroda korban pada proteksi katodik — “Replace spent anodes.”
+Cathode — elektroda penerima pada korosi — “Cathode protected by anode.”
+Sacrificial protection — perlindungan anoda korban — “Sacrificial protection effective.”
+Impressed current cathodic protection (ICCP) — sistem ICCP — “ICCP anodes energized.”
+Plugging — penutup kebocoran sementara — “Plugging pinholes.”
+Patch — tambalan struktural — “Apply patch on shell plating.”
+Underwater repair — perbaikan di bawah air — “Underwater repair by divers.”
+Diver inspection — inspeksi oleh diver — “Schedule diver inspection.”
+ROV (Remotely Operated Vehicle) — kendaraan bawah air jauh — “Deploy ROV for survey.”
+Saturation diving — metode menyelam saturasi — “Saturation diving planned.”
+Air diving — selam menggunakan udara permukaan — “Air diving within limits.”
+Hyperbaric chamber — ruangan tekanan tinggi — “Hyperbaric chamber ready.”
+Decompression sickness — penyakit dekompresi — “Treat decompression sickness immediately.”
+Dive watch — pengawasan saat menyelam — “Assign dive watch.”
+Underwater hull cleaning — pembersihan hull bawah air — “ROV doing hull cleaning.”
+Biofouling — organisme melekat pada struktur bawah air — “Biofouling reduces efficiency.”
+Anti-corrosion coupon — alat ukur laju korosi — “Retrieve anti-corrosion coupon.”
+Corrosion coupon analysis — analisis tingkat korosi — “Schedule corrosion coupon analysis.”
+Electrochemical potential — potensial elektrokimia — “Measure electrochemical potential.”
+Anode bonding — pemasangan anoda ke struktur — “Ensure anode bonding secure.”
+Insulating flange — flensa isolasi untuk mencegah arus — “Fit insulating flange on pipeline.”
+Pipe spool — bagian pipa siap pasang — “Assemble pipe spool.”
+Flow direction — arah aliran fluida — “Mark flow direction on pipe.”
+Pipe support — penopang pipa — “Replace corroded pipe supports.”
+Expansion joint — sambungan ekspansi pipa — “Fit expansion joint for thermal movement.”
+Thermal expansion — pemuaian akibat suhu — “Allow for thermal expansion.”
+Stress analysis — analisis tegangan struktural — “Perform stress analysis on bracket.”
+Fatigue — kerusakan akibat beban siklik — “Fatigue cracks near weld.”
+Fracture mechanics — ilmu patahan material — “Apply fracture mechanics assessment.”
+Crack propagation — perambatan retak — “Monitor crack propagation rate.”
+Safety factor — faktor keselamatan desain — “Design with adequate safety factor.”
+Load test — uji beban — “Conduct load test on davit.”
+Proof load — beban bukti untuk pengujian — “Apply proof load as specified.”
+Material certificate — sertifikat material — “Verify material certificate.”
+Traceability — pelacakan asal material — “Maintain traceability records.”
+Nonconformity — ketidaksesuaian — “Raise nonconformity report.”
+Corrective action — tindakan korektif — “Implement corrective action promptly.”
+Preventive maintenance — pemeliharaan pencegahan — “Schedule preventive maintenance routine.”
+CBM (Condition-Based Maintenance) — pemeliharaan berbasis kondisi — “Use CBM for bearings.”
+PM (Planned Maintenance) — pemeliharaan terencana — “Complete PM tasks weekly.”
+Work permit — izin kerja — “Issue work permit before job.”
+Job safety analysis (JSA) — analisis keselamatan kerja — “Perform JSA prior to task.”
+Toolbox talk — briefing keselamatan singkat — “Hold toolbox talk before start.”
+Permit to work (PTW) — perizinan pekerjaan berisiko — “PTW approved for hot work.”
+Confined space entry permit — ijin masuk ruang terbatas — “Confined space entry permit signed.”
+Lock-off — penguncian sumber energi — “Lock-off energy source.”
+Tag-out — penandaan peralatan tidak boleh dinyalakan — “Tag-out placed on valve.”
+Working at height (WAH) — bekerja di ketinggian — “Use fall arrest for WAH.”
+Fall arrest — sistem penahan jatuh — “Check fall arrest harness.”
+Lifeline — tali keselamatan — “Secure lifeline to anchor point.”
+Confined atmosphere — atmosfer berbahaya di ruang tertutup — “Test for confined atmosphere.”
+Continuous monitoring — pemantauan terus-menerus — “Set up continuous monitoring sensors.”
+Routine inspection — inspeksi rutin — “Complete routine inspection checklist.”
+Inspection interval — frekuensi inspeksi — “Inspection interval monthly.”
+Condition monitoring — pemantauan kondisi peralatan — “Condition monitoring implemented.”
+Trend analysis — analisis tren data — “Trend analysis shows wear increasing.”
+Baseline — nilai referensi awal — “Establish baseline measurements.”
+Threshold — batas kritis alarm — “Set threshold for vibration alarm.”
+Alarm logging — pencatatan alarm — “Enable alarm logging.”
+Event recorder — perekam kejadian sistem — “Retrieve event recorder file.”
+Data historian — penyimpan data sistem — “Check data historian for trends.”
+Maintenance management system (MMS) — sistem manajemen pemeliharaan — “Update MMS with work orders.”
+Work order — perintah kerja terstruktur — “Create work order for repair.”
+Spare parts — suku cadang — “Issue spare parts from stores.”
+Critical spares — suku cadang kritis — “Stock critical spares onboard.”
+Consumables — bahan habis pakai — “Order consumables for workshop.”
+Lead time — waktu pengadaan — “Consider lead time for spare delivery.”
+Vendor — pemasok — “Contact vendor for parts.”
+Warranty — jaminan pabrik — “Claim warranty for failed pump.”
+Service bulletin — pemberitahuan layanan pabrikan — “Implement service bulletin recommendations.”
+Technical manual — manual teknis peralatan — “Consult technical manual for procedure.”
+SOP (Standard Operating Procedure) — prosedur operasi standar — “Follow SOP for startup.”
+Work instruction — petunjuk kerja terperinci — “Refer to work instruction.”
+Competency — kualifikasi keterampilan personel — “Verify engineer competency.”
+Training record — catatan pelatihan awak — “Update training record.”
+Certification — sertifikasi keahlian — “Certification valid until 2026.”
+Drill — latihan keadaan darurat — “Hold fire drill monthly.”
+Table-top exercise — latihan simulasi di meja — “Conduct table-top exercise for scenario.”
+Incident report — laporan insiden — “File incident report immediately.”
+Root cause analysis (RCA) — analisis akar penyebab — “Perform RCA after failure.”
+Near miss — insiden nyaris terjadi — “Report near miss event.”
+Hazard identification — identifikasi bahaya — “Conduct hazard identification walk.”
+Risk assessment — penilaian risiko — “Complete risk assessment for task.”
+Risk matrix — matriks penilaian risiko — “Use risk matrix to prioritize.”
+Mitigation measure — tindakan pengurangan risiko — “Implement mitigation measures now.”
+Residual risk — sisa risiko setelah mitigasi — “Residual risk acceptable.”
+Permit to sail — ijin berlayar dari otoritas — “Obtain permit to sail.”
+Crew muster — pengumpulan awak saat alarm — “Crew muster for abandon ship drill.”
+Crisis management team (CMT) — tim manajemen krisis — “Activate CMT for major incident.”
+Incident command system (ICS) — sistem komando insiden — “Apply ICS structure.”
+Communication protocol — prosedur komunikasi — “Follow communication protocol during emergency.”
+Log entry — entri catatan resmi — “Make log entry for oil change.”
+Deviation report — laporan penyimpangan dari prosedur — “Submit deviation report.”
+Corrective maintenance — perbaikan setelah kerusakan — “Schedule corrective maintenance.”
+Breakdown — kerusakan tak terduga — “Breakdown requires spare part.”
+Mean Time Between Failures (MTBF) — rata-rata waktu antar kegagalan — “MTBF trending downward.”
+Mean Time To Repair (MTTR) — rata-rata waktu perbaikan — “Reduce MTTR by training crew.”
+Reliability — kemampuan perangkat beroperasi andal — “Reliability increased after retrofit.”
+Availability — persentase ketersediaan operasional — “Improve equipment availability.”
+Maintainability — kemudahan pemeliharaan — “Design for maintainability reduces downtime.”
+Redundancy — komponen cadangan untuk keandalan — “System has N+1 redundancy.”
+Fail-safe — desain aman ketika gagal — “Fail-safe valve closed on fault.”
+Isolation — memutus aliran/energi ke bagian — “Isolate pipeline before repair.”
+Recovery plan — rencana pemulihan operasi — “Execute recovery plan after blackout.”
+Contingency — rencana darurat cadangan — “Contingency measures enacted.”
+Business continuity — kelangsungan operasional — “Activate business continuity plan.”
+Spare parts catalogue — katalog suku cadang — “Refer to spare parts catalogue.”
+Bill of materials (BOM) — daftar bahan/suku cadang — “Prepare BOM for overhaul.”
+SKU (Stock Keeping Unit) — unit kode stok — “Order SKU 12345.”
+Inventory management — manajemen persediaan — “Update inventory management system.”
+Stock rotation — rotasi stok berdasarkan umur — “Implement stock rotation FIFO.”
+FIFO (First In First Out) — metode FIFO — “Use FIFO for consumables.”
+Obsolescence — ketidakaktualan suku cadang — “Plan for obsolescence replacements.”
+Reverse logistics — proses pengembalian barang — “Arrange reverse logistics for faulty parts.”
+Customs clearance — pemberesan bea cukai impor — “Prepare documents for customs clearance.”
+Import duty — pajak impor — “Calculate import duty for spare parts.”
+Freight forwarding — pengiriman logistik — “Contact freight forwarder for urgent shipment.”
+ETA (Estimated Time of Arrival) — perkiraan waktu tiba — “ETA at port 0600.”
+ETD (Estimated Time of Departure) — perkiraan waktu berangkat — “ETD after bunkering complete.”
+ETC (Estimated Time of Completion) — perkiraan waktu selesai pekerjaan — “ETC for repairs 48 hours.”
+SLA (Service Level Agreement) — perjanjian tingkat layanan — “Vendor SLA requires 24h response.”
+RFP (Request for Proposal) — permintaan penawaran — “Issue RFP for overhaul services.”
+PO (Purchase Order) — pesanan pembelian — “Raise PO for pump spare.”
+Invoice — tagihan/nota pembayaran — “Submit invoice to accounts.”
+Invoice reconciliation — pencocokan tagihan — “Perform invoice reconciliation.”
+Cost center — unit pengeluaran biaya — “Charge to cost center 2301.”
+Budget variance — perbedaan anggaran realisasi — “Explain budget variance.”
+CAPEX — belanja modal — “CAPEX approved for new generator.”
+OPEX — biaya operasional — “Monitor OPEX monthly.”
+Return on investment (ROI) — pengembalian investasi — “Estimate ROI for retrofit.”
+Life-cycle cost — biaya sepanjang umur peralatan — “Consider life-cycle cost in procurement.”
+Depreciation — penyusutan aset — “Record depreciation of engine.”
+Salvage — nilai sisa aset — “Salvage value considered in replacement.”
+Insurance — asuransi kapal/peralatan — “File insurance claim for damage.”
+P&I Club (Protection & Indemnity) — asosiasi tanggung jawab pihak ke-3 — “Notify P&I Club for pollution.”
+Hull & Machinery (H&M) insurance — asuransi lambung dan mesin — “H&M policy in force.”
+General average — kontribusi bersama atas kerugian bersama — “Declare general average if required.”
+Salvage award — imbalan penyelamatan — “Negotiate salvage award.”
+Charter party — kontrak pengangkutan sewa kapal — “Review charter party clauses.”
+Laytime — waktu bongkar/muat yang disepakati — “Calculate laytime usage.”
+Demurrage — denda keterlambatan bongkar/muat — “Claim demurrage for delay.”
+Despatch — imbalan percepatan bongkar/muat — “Despatch payable for early completion.”
+Bill of lading (B/L) — dokumen angkutan kargo — “Sign and release Bill of Lading.”
+Manifest — daftar muatan — “Submit cargo manifest to port authorities.”
+Customs declaration — deklarasi bea cukai — “File customs declaration prior arrival.”
+IMSBC Code — kode muatan curah mineral dan batubara — “Comply with IMSBC for bulk cargo.”
+IMSBC schedule — jadwal/ketentuan cargo pada IMSBC — “Check IMSBC schedule for cargo.”
+IMDG Code — kode barang berbahaya laut — “Follow IMDG segregation rules.”
+Segregation — pem separation barang berbahaya — “Ensure segregation of incompatible cargoes.”
+Stability booklet — buku stabilitas kapal — “Refer to stability booklet for loading.”
+Deadweight (DWT) — kapasitas angkut berat kotor kapal — “Vessel DWT 30,000 tonnes.”
+Lightship weight — berat kapal kosong — “Lightship weight recorded in certificate.”
+Ballast water management plan (BWMP) — rencana pengelolaan ballast — “Implement BWMP during ballasting.”
+BWT certificate — sertifikat sistem pengolahan ballast — “BWT certificate onboard.”
+Port reception facility — fasilitas penerimaan sampah dan limbah pelabuhan — “Use port reception facility for slops.”
+SEEMP (Ship Energy Efficiency Management Plan) — rencana efisiensi energi kapal — “Update SEEMP measures.”
+EEDI (Energy Efficiency Design Index) — indeks desain efisiensi energi — “EEDI compliance documented.”
+SOx scrubber — sistem pengurang SOx — “Scrubber operational during emission control.”
+NOx emission — emisi nitrogen oksida — “Monitor NOx emission levels.”
+Green passport — dokumen material berbahaya kapal — “Green passport updated.”
+Inventory of hazardous materials (IHM) — inventaris material berbahaya — “IHM available onboard.”
+Ship recycling — proses daur ulang kapal — “Prepare for compliant ship recycling.”
+Energy audit — audit penggunaan energi — “Conduct energy audit for propulsion.”
+Carbon footprint — jejak karbon operasional kapal — “Estimate carbon footprint for voyage.”
+Alternative fuels — bahan bakar alternatif (LNG, biofuel) — “Assess alternative fuels feasibility.”
+LNG (Liquefied Natural Gas) — gas alam cair — “LNG bunkering procedure followed.”
+Methane slip — kebocoran metana emisi — “Monitor methane slip from engines.”
+Hybrid propulsion — sistem propulsi hibrida — “Hybrid propulsion reduces fuel consumption.”
+Battery energy storage — penyimpanan energi baterai — “Battery bank capacity 2 MWh.”
+Shore power (cold ironing) — pasokan listrik dermaga ke kapal — “Connect to shore power when at berth.”
+Onshore power supply (OPS) — sistem suplai listrik dermaga — “OPS available at terminal.”
+Waste management plan — rencana pengelolaan sampah — “Follow waste management plan.”
+Oily sludge disposal — pembuangan sludge berminyak — “Dispose oily sludge via facility.”
+Bilge water treatment — pengolahan air bilge — “Bilge water treatment OWS functioning.”
+Sewage treatment plant (STP) — sistem pengolahan limbah domestik — “STP operating parameters nominal.”
+Gray water — air limbah non-sewer (dapur, laundry) — “Manage gray water according to rules.”
+Black water — air limbah toilet — “Black water discharge prohibited in certain zones.”
+Food waste — sisa makanan — “Segregate food waste for port reception.”
+Garbage management plan (GMP) — rencana pengelolaan sampah — “Update GMP records.”
+Incinerator — alat pembakar sampah — “Incinerator serviced and certified.”
+Sewage holding tank — tangki penampung limbah toilet — “Empty sewage holding tank at port reception.”
+Bilge alarm log — catatan alarm bilge — “Bilge alarm log reviewed daily.”
+Oil discharge monitoring equipment (ODME) — peralatan pemantau pembuangan minyak — “ODME record maintained.”
+Garbage compactor — mesin pengepres sampah — “Garbage compactor operational.”
+Recycling — daur ulang material — “Segregate recyclables in designated bins.”
+Hazardous waste — limbah berbahaya — “Store hazardous waste securely.”
+Chemical manifest — daftar bahan kimia onboard — “Chemical manifest updated.”
+MSDS (Material Safety Data Sheet) — lembar data keselamatan bahan — “MSDS available for all chemicals.”
+Spill response — tanggapan tumpahan — “Spill response team deployed.”
+Containment boom — booming untuk menahan tumpahan — “Deploy containment boom around sheen.”
+Absorbent pads — lap serap minyak — “Use absorbent pads for small spills.”
+Skimmer — alat pemisah minyak di permukaan — “Skimmer engaged on surface sheen.”
+Dispersant — bahan pendorong pelarutan minyak — “Dispersant application authorized by authorities.”
+Environmental monitoring — pemantauan lingkungan — “Carry out environmental monitoring after incident.”
+Ballast water exchange (BWE) — pertukaran ballast di laut terbuka — “Perform BWE at approved location.”
+Biosecurity — tindakan pencegahan organisme invasif — “Implement biosecurity controls on ballast.”
+Invasive species — spesies asing merusak — “Prevent transfer of invasive species.”
+Marine pollution — pencemaran laut — “Report marine pollution per MARPOL.”
+Emission monitoring — pemantauan emisi atmosfer — “Emission monitoring results logged.”
+Noise pollution — polusi kebisingan laut — “Assess noise pollution from propellers.”
+Underwater radiated noise (URN) — kebisingan yang merambat di air — “Measure URN during trials.”
+Cetacean detection — deteksi paus dan mamalia laut — “Perform cetacean detection watch.”
+Slow steaming — berlayar pada kecepatan rendah untuk efisiensi — “Adopt slow steaming in economic zone.”
+Voyage optimization — optimasi rute dan kecepatan — “Use voyage optimization software.”
+Weather routing — penentuan rute berdasarkan cuaca — “Apply weather routing to avoid storms.”
+Fuel monitoring — pemantauan konsumsi bahan bakar — “Realtime fuel monitoring active.”
+Energy management — manajemen penggunaan energi kapal — “Implement energy management measures.”
+Heat recovery — pemulihan panas limbah — “Heat recovery unit online.”
+Waste heat boiler — ketel pemanfaatan panas buang — “Waste heat boiler efficiency tracked.”
+Cogeneration — penciptaan listrik dan panas bersamaan — “Cogeneration system planned.”
+Emission trading — perdagangan emisi karbon — “Consider emission trading impacts.”
+Carbon offset — kompensasi karbon — “Purchase carbon offset for voyage.”
+Sustainable shipping — praktik pelayaran berkelanjutan — “Implement sustainable shipping initiatives.”
+Greenhouse gas (GHG) — gas rumah kaca — “Monitor GHG emissions.”
+Scope 1 emissions — emisi langsung dari kapal — “Report Scope 1 emissions.”
+Scope 2 emissions — emisi tak langsung dari listrik dermaga — “Account for Scope 2 emissions.”
+Scope 3 emissions — emisi rantai pasokan — “Estimate Scope 3 emissions.”
+Decarbonisation — pengurangan karbon — “Plan for decarbonisation roadmap.”
+Energy efficiency — efisiensi penggunaan energi — “Implement energy efficiency measures.”
+IMO 2020 — peraturan batas sulfur bahan bakar sejak 2020 — “Comply with IMO 2020 sulphur limits.”
+Carbon intensity indicator (CII) — indikator intensitas karbon kapal — “Monitor CII performance.”
+EEXI (Energy Efficiency Existing Ship Index) — indeks efisiensi energi kapal eksisting — “EEXI calculation completed.”
+Technical file — dokumen teknis kapal untuk compliance — “Prepare technical file for inspection.”
+Operational indicator — indikator kinerja operasi — “Track operational indicators weekly.”
+Data acquisition — pengumpulan data sensor — “Implement robust data acquisition.”
+Telemetry — pengiriman data jarak jauh — “Set telemetry to shore office.”
+Big data analytics — analisis data skala besar — “Apply big data analytics for fuel usage.”
+Machine learning — penerapan algoritma pembelajaran mesin — “Use machine learning for anomaly detection.”
+Predictive maintenance — pemeliharaan prediktif berbasis data — “Predictive maintenance alerts active.”
+Digital twin — model digital aset fisik — “Create digital twin for main engine.”
+IoT (Internet of Things) — sensor terhubung — “IoT sensors streaming telemetry.”
+Cybersecurity — keamanan siber — “Harden systems against cyber threats.”
+Network segmentation — pemecahan jaringan untuk keamanan — “Implement network segmentation onboard.”
+Firewall — penyaring lalu lintas jaringan — “Update firewall rules.”
+Antivirus — perangkat lunak anti malware — “Antivirus signatures updated.”
+Patch management — pengelolaan perbaikan perangkat lunak — “Apply patch management schedule.”
+Access control — kontrol akses sistem — “Enforce access control policies.”
+Two-factor authentication (2FA) — autentikasi dua faktor — “Enable 2FA for remote access.”
+Encryption — enkripsi data — “Encrypt sensitive data in transit.”
+Backup — cadangan data — “Schedule regular backups to shore.”
+Disaster recovery — pemulihan dari bencana IT — “Test disaster recovery plan.”
+Vulnerability assessment — penilaian kerentanan — “Conduct vulnerability assessment quarterly.”
+Penetration testing (pentest) — ujicoba peretasan terkontrol — “Arrange pentest for SCADA.”
+Incident response plan (IRP) — rencana tanggap insiden siber — “IRP updated with contacts.”
+Phishing — serangan email menipu — “Crew trained to identify phishing.”
+Zero trust — model keamanan tanpa kepercayaan default — “Adopt zero trust principles.”
+VPN (Virtual Private Network) — jaringan pribadi virtual — “Use VPN for shore connectivity.”
+Red team/blue team — latihan keamanan ofensif/defensif — “Conduct red team exercise.”
+Patch cord — kabel patch jaringan — “Replace damaged patch cord.”
+Ethernet switch — switch jaringan — “Check Ethernet switch ports.”
+Modbus — protokol komunikasi industri — “PLC communicates via Modbus.”
+OPC-UA — protokol pertukaran data industri — “Integrate sensors via OPC-UA.”
+CAN bus — jaringan komunikasi kendaraan/mesin — “CAN bus messages logged.”
+RS-485 — standar komunikasi serial — “RS-485 link stable.”
+Serial communication — komunikasi serial antara perangkat — “Configure serial communication parameters.”
+TCP/IP — protokol internet — “Ensure TCP/IP connectivity.”
+Latency — tunda transmisi data — “Reduce network latency for telemetry.”
+Throughput — kapasitas transfer data — “Network throughput adequate.”
+Packet loss — kehilangan paket data — “Investigate packet loss on link.”
+Mesh network — jaringan mesh terdistribusi — “Deploy mesh network for sensors.”
+Edge computing — pemrosesan data di tepi jaringan — “Use edge computing to preprocess signals.”
+Cloud integration — konektivitas ke layanan cloud — “Enable cloud integration for analytics.”
+API (Application Programming Interface) — antarmuka pemrograman aplikasi — “Consume telemetry via API.”
+SDK (Software Development Kit) — paket pengembangan perangkat lunak — “Use SDK for sensor integration.”
+Data logger — perekam data — “Retrieve data logger file.”
+SCM (Supply Chain Management) — manajemen rantai pasok — “Optimize SCM for spare parts.”
+ERP (Enterprise Resource Planning) — sistem manajemen terintegrasi — “Update ERP with purchase orders.”
+KPI (Key Performance Indicator) — indikator kinerja kunci — “Track KPIs for fuel burn.”
+Dashboard — antarmuka visual data — “Design dashboard for chief engineer.”
+Alerting — sistem pemberitahuan otomatis — “Configure alerting thresholds.”
+Notification — pemberitahuan sistem — “Send notification to shore team.”
+Human factors — elemen manusia dalam operasi — “Consider human factors in procedures.”
+Fatigue management — pengelolaan kelelahan awak — “Implement fatigue management policy.”
+Work-rest hours — aturan jam kerja-istirahat — “Log work-rest hours accurately.”
+Bridge resource management (BRM) — manajemen sumber daya jembatan — “Practice BRM during watch.”
+Engine room resource management (ERRM) — manajemen sumber daya ruang mesin — “Apply ERRM principles.”
+Crew resource management (CRM) — manajemen sumber daya awak — “Train crew on CRM.”
+Human-machine interface (HMI) — interaksi manusia-mesin — “Simplify HMI to reduce errors.”
+Standard phraseology — istilah baku komunikasi — “Use standard phraseology on VHF.”
+Readback — pengulangan instruksi untuk verifikasi — “Perform readback of orders.”
+Closed-loop communication — komunikasi tertutup untuk akurasi — “Use closed-loop communication during manoeuvres.”
+Situational awareness — kesadaran situasi operasional — “Maintain situational awareness at all times.”
+Decision making — proses pengambilan keputusan — “Apply structured decision making in emergency.”
+Fat finger error — kesalahan input karena ketidaksengajaan — “Double-check to avoid fat finger errors.”
+Checklist — daftar periksa prosedur — “Follow pre-start checklist.”
+Crew familiarization — pengenalan awak terhadap sistem — “Provide crew familiarization for new equipment.”
+Cross training — pelatihan silang antar peran — “Cross training improves resilience.”
+Human error — kesalahan akibat manusia — “Investigate human error causes.”
+Near hit — kejadian hampir celaka — “Document near hit event.”
+Workload — beban kerja awak — “Manage workload to prevent fatigue.”
+Ambiguity — ketidakjelasan instruksi — “Avoid ambiguity in orders.”
+SOP compliance — ketaatan pada SOP — “Audit SOP compliance monthly.”
+Performance appraisal — penilaian kinerja awak — “Schedule performance appraisal.”
+Crew retention — retensi awak — “Implement incentives for crew retention.”
+Manpower planning — perencanaan kebutuhan tenaga — “Review manpower planning for next quarter.”
+Competency matrix — matriks kompetensi awak — “Update competency matrix for engine team.”
+Onboarding — proses masuk awak baru — “Complete onboarding checklist.”
+Off-signing — proses turun awak dari kapal — “Prepare off-signing documents.”
+Crew change — pergantian awak kapal — “Plan crew change at next port.”
+Seafarer welfare — kesejahteraan pelaut — “Provide welfare facilities onboard.”
+Mental health — kesehatan mental awak — “Offer mental health support resources.”
+Cultural awareness — kesadaran budaya antar awak — “Promote cultural awareness onboard.”
+Language proficiency — kemampuan bahasa awak — “Ensure English language proficiency for safety-critical roles.”
+Medical chest — kotak obat onboard — “Stock medical chest per requirements.”
+Medical evacuation (MEDEVAC) — evakuasi medis — “Plan for MEDEVAC if necessary.”
+Telemedicine — konsultasi medis jarak jauh — “Use telemedicine for onboard medical cases.”
+First aid — pertolongan pertama — “Crew trained in first aid.”
+Medical officer — petugas medis kapal — “Contact medical officer for assessment.”
+IMO medical guide — panduan medis IMO — “Refer to IMO medical guide.”
+Vaccinations — vaksinasi untuk awak — “Ensure crew vaccinations up to date.”
+Fatigue report — laporan kelelahan — “Submit fatigue report after long watch.”
+Incident log — log kejadian — “Update incident log with details.”
+Crew roster — jadwal awak — “Publish crew roster for next month.”
+Standards of training (STCW) — standar pelatihan pelaut — “Comply with STCW requirements.”
+Certification of competency (CoC) — sertifikat kompetensi pelaut — “Present CoC to port state control.”
+Medical certificate — sertifikat kesehatan awak — “Medical certificate valid until next year.”
+Seafarer identity document (SID) — dokumen identitas pelaut — “Keep SID accessible.”
+Crew passport — paspor awak — “Ensure crew passport valid.”
+Crew travel arrangement — pengaturan perjalanan awak — “Coordinate crew travel arrangement.”
+Welfare fund — dana kesejahteraan awak — “Contribute to crew welfare fund.”
+Shore leave — izin turun ke darat — “Grant shore leave per schedule.”
+Port formalities — prosedur kepelabuhan — “Complete port formalities promptly.”
+Immigration clearance — izin imigrasi — “Obtain immigration clearance for crew.”
+Customs inspection — pemeriksaan bea cukai — “Prepare for customs inspection.”
+Quarantine — karantina kesehatan hewan/manusia — “Comply with quarantine requirements.”
+Port State Control (PSC) deficiency — temuan PSC — “Address PSC deficiency within time.”
+Detention — penahanan kapal oleh otoritas — “Avoid conditions leading to detention.”
+Notice of Readiness (NOR) — pemberitahuan kesiapan kapal — “Tender NOR upon arrival.”
+Customs bond — jaminan bea cukai — “Provide customs bond where required.”
+Pilot boarding — naiknya pilot ke kapal — “Rig pilot boarding arrangements.”
+Tug assistance — bantuan kapal tunda — “Request tug assistance for berthing.”
+Harbor towage plan — rencana tunda pelabuhan — “Submit harbor towage plan.”
+Quay — dermaga — “Dock alongside the quay.”
+Terminal operator — operator terminal — “Coordinate with terminal operator.”
+Stevedore — buruh bongkar muat — “Provide safe access for stevedores.”
+Gang timing — waktu kerja bongkar muat — “Plan gang timing to optimize operations.”
+Lightering — pemindahan kargo antar kapal di laut — “Arrange lightering for cargo transfer.”
+Ship-to-ship transfer (STS) — transfer muatan kapal-ke-kapal — “Follow STS safety procedures.”
+Cargo manifest — daftar rincian muatan — “Provide cargo manifest to agent.”
+Declaration of health — deklarasi kesehatan awak — “Complete declaration of health before port entry.”
+ISPS Code (International Ship and Port Facility Security) — kode keamanan kapal dan fasilitas pelabuhan — “Comply with ISPS security level directives.”
+Ship security officer (SSO) — petugas keamanan kapal — “SSO appointed for voyage.”
+Port facility security officer (PFSO) — petugas keamanan fasilitas pelabuhan — “Coordinate with PFSO on arrival.”
+Restricted area — area terbatas akses — “Keep restricted area secured.”
+Access control list — daftar kontrol akses — “Maintain up-to-date access control list.”
+Security alert — peringatan keamanan — “Raise security alert per procedure.”
+Piracy — serangan bajak laut — “Implement anti-piracy measures in high-risk area.”
+Armed guard — penjaga bersenjata (opsional) — “Consider armed guard in risk zone.”
+Citadel — ruang aman untuk awak saat serangan — “Citadel must be ready for use.”
+Rendezvous point — titik pertemuan darurat — “Establish rendezvous point for evacuation.”
+Anti-piracy watch — pengawasan anti-pembajakan — “Assign anti-piracy lookouts.”
+Secure communications — komunikasi aman — “Use secure communications for sensitive info.”
+Ship security plan — rencana keamanan kapal — “Ship security plan updated annually.”
+ISPS declaration — deklarasi kepatuhan ISPS — “Submit ISPS declaration on arrival.”
+Restricted weapons — senjata yang dilarang di kapal — “Do not store restricted weapons onboard.”
+Security drills — latihan keamanan — “Conduct security drills monthly.”
+Incident command — komando insiden — “Establish incident command chain for security breach.”
+Port security — keamanan pelabuhan — “Coordinate port security measures.”
+Screening — pemeriksaan barang dan orang — “Screen visitors before boarding.”
+Background check — cek latar belakang personel — “Perform background check for contractors.”
+Cargo theft prevention — pencegahan pencurian muatan — “Implement cargo theft prevention measures.”
+ISPS audit — audit kepatuhan ISPS — “Prepare for ISPS audit next month.”
+Security equipment — peralatan keamanan (CCTV, access control) — “Ensure CCTV cameras operational.”
+CCTV (Closed Circuit TV) — sistem kamera pengawas — “CCTV footage archived per policy.”
+Perimeter security — keamanan perimeter kapal — “Inspect perimeter lighting and barriers.”
+Security vulnerability — kerentanan keamanan — “Address identified security vulnerability.”
+Security incident report — laporan kejadian keamanan — “File a security incident report.”
+Security clearance — izin keamanan untuk akses tertentu — “Verify security clearance before granting access.”
+Threat assessment — penilaian ancaman — “Conduct threat assessment for voyage.”
+Risk mitigation — tindakan pengurangan risiko keamanan — “Implement risk mitigation for piracy hotspots.”
+Crisis communication — komunikasi saat krisis — “Activate crisis communication plan.”
+Digital documentation — dokumen digital kapal — “Migrate logs to digital documentation system.”
+Paperless operations — operasi tanpa kertas — “Adopt paperless operations for deck log.”
+E-logbook — buku catatan elektronik — “E-logbook synchronized with shore.”
+Record retention — retensi dokumen — “Follow record retention policy.”
+Data integrity — keutuhan data — “Ensure data integrity with checksums.”
+Audit trail — jejak audit perubahan data — “Maintain audit trail for modifications.”
+Version control — kontrol versi dokumen — “Use version control for technical files.”
+Electronic signature — tanda tangan elektronik — “Use electronic signature per policy.”
+Digital certificate — sertifikat digital keamanan — “Install digital certificate for secure access.”
+Encryption key — kunci enkripsi — “Rotate encryption keys periodically.”
+Secure storage — penyimpanan aman dokumen — “Store sensitive files in secure storage.”
+Data governance — tata kelola data — “Implement data governance framework.”
+Metadata — data tentang data — “Include metadata for all documents.”
+Searchability — kemampuan pencarian dokumen — “Improve searchability of manuals.”
+OCR (Optical Character Recognition) — pengenalan teks pada dokumen gambar — “Use OCR to index paper manuals.”
+Digital archive — arsip digital — “Migrate records to digital archive.”
+Data privacy — privasi data personal — “Comply with data privacy regulations.”
+GDPR — aturan perlindungan data UE — “Consider GDPR for European crew data.”
+Data minimization — prinsip mengurangi data tersimpan — “Follow data minimization practices.”
+Access logs — catatan akses dokumen — “Review access logs weekly.”
+Data anonymization — pemisahan identitas dari data — “Anonymize crew health records.”
+Two-man rule — aturan dua orang untuk tindakan kritis — “Apply two-man rule for safety-critical operations.”
+Quality assurance (QA) — penjaminan mutu — “Implement QA checks during overhaul.”
+Quality control (QC) — pengendalian mutu — “QC inspector signs off on completed task.”
+ISO 9001 — standar manajemen mutu — “Organization ISO 9001 certified.”
+ISO 14001 — standar manajemen lingkungan — “Comply with ISO 14001 procedures.”
+ISO 45001 — standar K3 — “Implement ISO 45001 occupational safety measures.”
+Continuous improvement (CI) — perbaikan berkelanjutan — “Implement CI suggestions from crew.”
+Kaizen — prinsip perbaikan kecil terus menerus — “Adopt Kaizen for workshop efficiency.”
+Lean maintenance — pemeliharaan efisien tanpa pemborosan — “Apply lean maintenance practices.”
+Six Sigma — metodologi pengurangan cacat — “Use Six Sigma for quality projects.”
+Root cause corrective action (RCCA) — tindakan korektif akar penyebab — “Implement RCCA after incident.”
+PDCA (Plan-Do-Check-Act) — siklus peningkatan mutu — “Apply PDCA to maintenance plan.”
+Benchmarking — pembandingan kinerja terhadap standar — “Benchmark fuel consumption against fleet average.”
+Key result area (KRA) — area hasil kunci — “Define KRAs for engineering team.”
+Balanced scorecard — metode pengukuran kinerja menyeluruh — “Implement balanced scorecard metrics.”
+Performance review — tinjauan kinerja berkala — “Schedule annual performance review.”
+Continuous training — pelatihan berkelanjutan — “Plan continuous training for crew.”
+Mentoring — pembimbingan junior oleh senior — “Assign mentoring for engine cadets.”
+Knowledge transfer — pemindahan pengetahuan teknis — “Conduct knowledge transfer sessions.”
+Lessons learned — catatan pembelajaran dari kejadian — “Document lessons learned after incident.”
+Best practice — praktik terbaik — “Adopt industry best practices.”
+Competence assessment — penilaian kompetensi — “Complete competence assessment quiz.”
+Simulator training — latihan di simulator — “Use simulator training for emergency scenarios.”
+E-learning — pembelajaran daring — “Offer e-learning modules for tech updates.”
+Knowledge base — basis pengetahuan perusahaan — “Update knowledge base with troubleshooting guides.”
+Technical bulletin — buletin teknis — “Distribute technical bulletin for engine upgrade.”
+Field modification — modifikasi lapangan peralatan — “Approve field modification per QA.”
+Retrofit — pemasangan peralatan baru ke sistem lama — “Retrofit scrubber onto exhaust.”
+Obsolescence management — mengelola suku cadang usang — “Implement obsolescence management plan.”
+Lifecycle management — pengelolaan siklus hidup aset — “Plan lifecycle management for generator.”
+Asset register — daftar aset perusahaan — “Update asset register after procurement.”
+Depreciation schedule — jadwal penyusutan aset — “Review depreciation schedule annually.”
+Asset tagging — penandaan aset untuk pelacakan — “Tag new equipment with barcode.”
+Barcode scanning — pemindaian kode batang — “Use barcode scanning for spare issue.”
+RFID (Radio Frequency ID) — identifikasi frekuensi radio — “Implement RFID for inventory control.”
+GIS (Geographic Info System) — sistem informasi geografis — “Map port infrastructures using GIS.”
+Lifecycle costing — perhitungan biaya sepanjang umur — “Perform lifecycle costing for new build.”
+Total cost of ownership (TCO) — biaya kepemilikan total — “Calculate TCO for propulsion options.”
+Capital planning — perencanaan belanja modal — “Include CAPEX in capital planning.”
+Fleet management — manajemen armada kapal — “Centralize fleet management data.”
+Chartering strategy — strategi penyewaan kapal — “Adjust chartering strategy for seasonal demand.”
+Operational excellence — keunggulan operasi — “Drive operational excellence initiatives.”
+Regulatory compliance — kepatuhan terhadap regulasi — “Ensure regulatory compliance for all voyages.”
+Stakeholder engagement — keterlibatan pemangku kepentingan — “Engage stakeholders on environmental plans.”
+Community relations — hubungan dengan komunitas sekitar pelabuhan — “Improve community relations through outreach.”
+Corporate social responsibility (CSR) — tanggung jawab sosial perusahaan — “Implement CSR projects in port town.”
+Sustainability reporting — pelaporan keberlanjutan — “Publish sustainability report annually.”
+ESG (Environmental, Social, Governance) — kriteria investasi berkelanjutan — “Integrate ESG metrics into operations.”
+Transparency — keterbukaan informasi — “Promote transparency in reporting.”
+Ethical procurement — pengadaan etis — “Select suppliers with ethical procurement policies.”
+Anti-bribery — kebijakan anti-sogok — “Adopt anti-bribery code of conduct.”
+Whistleblower policy — kebijakan pelapor pelanggaran — “Publish whistleblower policy for crew.”
+Conflict of interest — konflik kepentingan — “Declare any conflict of interest.”
+Data sovereignty — kedaulatan data negara — “Consider data sovereignty when using cloud.”
+Procurement cycle — siklus pengadaan barang — “Map procurement cycle steps clearly.”
+Supplier evaluation — penilaian pemasok — “Conduct supplier evaluation pre-tender.”
+Inspection certificate — sertifikat inspeksi kualitas — “Request inspection certificate from vendor.”
+Factory acceptance test (FAT) — uji terima pabrik — “Attend FAT for new generator set.”
+Site acceptance test (SAT) — uji terima lokasi pemasangan — “Schedule SAT after installation.”
+Commissioning — pengoperasian awal peralatan — “Commissioning completed successfully.”
+Performance test — uji kinerja peralatan — “Performance test meets specs.”
+Warranty claim — klaim garansi — “File warranty claim with manufacturer.”
+Service level review — tinjauan tingkat layanan vendor — “Hold service level review quarterly.”
+Key supplier — pemasok kunci — “Establish long-term agreement with key supplier.”
+Vendor managed inventory (VMI) — persediaan yang dikelola vendor — “Implement VMI for critical spares.”
+Consignment stock — stok konsinyasi — “Keep consignment stock in bonded stores.”
+Just-in-time (JIT) — pengadaan tepat waktu — “Adopt JIT for consumables to reduce OPEX.”
+Kanban — sistem sinyal stok — “Use Kanban for workshop supplies.”
+Procurement KPI — indikator kinerja pengadaan — “Track procurement KPIs monthly.”
+Contract management — manajemen kontrak pemasok — “Centralize contract management records.”
+SLAs enforcement — penegakan SLA — “Enforce SLAs with penalties for breach.”
+Performance bond — jaminan kinerja kontraktor — “Obtain performance bond for major works.”
+Letter of credit (L/C) — surat kredit bank — “Use L/C for international procurement.”
+Bank guarantee — jaminan bank — “Request bank guarantee for advance payment.”
+Trade finance — pembiayaan perdagangan — “Arrange trade finance for imports.”
+Currency risk — risiko nilai tukar — “Hedge currency risk for spare orders.”
+Customs tariff — tarif bea masuk — “Calculate customs tariff for imported items.”
+Import license — izin impor — “Apply import license for restricted goods.”
+Export control — pengendalian ekspor barang strategis — “Check export control classification.”
+Knowledge management system (KMS) — sistem manajemen pengetahuan — “Implement KMS for technical documents.”
+Document control — pengendalian dokumen — “Follow document control procedures.”
+Records management — manajemen arsip dan catatan — “Records management policy enforced.”
+Compliance monitoring — pemantauan kepatuhan regulasi — “Set up compliance monitoring dashboard.”
+Regulatory change management — manajemen perubahan regulasi — “Track regulatory change updates.”
+Legal counsel — penasihat hukum — “Consult legal counsel for contract dispute.”
+Claims management — manajemen klaim asuransi/kontrak — “Handle claims management systematically.”
+Arbitration — penyelesaian sengketa arbitrase — “Refer to arbitration clause in contract.”
+Litigation — proses hukum di pengadilan — “Prepare for potential litigation.”
+Force majeure — keadaan kahar/luar biasa — “Invoke force majeure if applicable.”
+Indemnity — ganti rugi kontrak — “Negotiate indemnity limits in contract.”
+Liability — tanggung jawab hukum — “Clarify liability allocation in charter party.”
+Third party claim — klaim pihak ketiga — “Notify insurer of third party claim.”
+Subrogation — hak penggantian klaim asuransi — “Insurer may seek subrogation.”
+Licensing — perizinan operasional — “Verify licensing requirements for new equipment.”
+Patents — hak paten teknologi — “Check patents before adopting new tech.”
+Intellectual property (IP) — hak kekayaan intelektual — “Protect IP from research outputs.”
+Confidentiality agreement (NDA) — perjanjian kerahasian — “Sign NDA before sharing designs.”
+Data sharing agreement — perjanjian berbagi data — “Establish data sharing agreement with partner.”
+Open-source license — lisensi sumber terbuka — “Respect open-source license terms.”
+Research collaboration — kolaborasi penelitian — “Set terms for research collaboration contract.”
+Publication policy — kebijakan publikasi hasil penelitian — “Agree publication policy before joint research.”
+Authorship — pengakuan penulis karya ilmiah — “Define authorship order early.”
+Citation — rujukan sumber tulisan — “Cite sources per APA 7 format.”
+Plagiarism — duplikasi tanpa atribusi — “Run plagiarism check before submission.”
+Peer review — tinjauan sejawat artikel — “Submit article for peer review.”
+Impact factor — indikator prestise jurnal — “Target journal with appropriate impact factor.”
+Open access — akses terbuka publikasi — “Consider open access for wider reach.”
+DOI (Digital Object Identifier) — identifikasi digital karya ilmiah — “Include DOI in references.”
+Research data management (RDM) — manajemen data penelitian — “Plan RDM for corpus datasets.”
+Anonymization protocol — protokol penghilangan identitas data — “Apply anonymization protocol to recordings.”
+Informed consent — persetujuan partisipan penelitian — “Obtain informed consent from crew participants.”
+Ethics committee — komite etik penelitian — “Seek ethics committee approval.”
+Data retention policy — kebijakan penyimpanan data penelitian — “Follow data retention policy for raw corpus.”
+Metadata standard — standar metadata (e.g., Dublin Core) — “Adopt metadata standard for corpus.”
+Corpus annotation — penandaan tag linguistik korpus — “Perform corpus annotation for POS tags.”
+POS tagging (Part-of-Speech) — penandaan kelas kata — “Run POS tagging on transcripts.”
+Lemmatization — reduksi kata ke bentuk dasar — “Apply lemmatization to token list.”
+Tokenization — pemecahan teks menjadi token — “Tokenization step completed.”
+Concordance — tampilan konteks kata dalam korpus — “Search concordance for term usage.”
+Collocation — keterikatan kata bersama — “Identify collocations for technical terms.”
+Frequency list — daftar frekuensi kata — “Generate frequency list from corpus.”
+Keyword in context (KWIC) — kata kunci dalam konteks — “Produce KWIC outputs for analysis.”
+N-gram — urutan n kata berurutan — “Extract bi-grams and tri-grams.”
+Stop words — kata yang diabaikan analisis (umum) — “Remove stop words before analysis.”
+Stemming — pemotongan afiks ke akar — “Stemming applied for search normalization.”
+Named entity recognition (NER) — pengenalan entitas bernama — “Run NER to extract person names.”
+POS tagset — set label POS yang dipakai — “Select POS tagset for annotation.”
+Annotation guideline — panduan anotasi korpus — “Follow annotation guideline strictly.”
+Inter-annotator agreement (IAA) — kesepakatan antar-anotator — “Measure IAA with Cohen’s kappa.”
+Cohen’s kappa — metrik kesepakatan anotator — “Cohen’s kappa indicates high agreement.”
+Reliability metric — metrik keandalan data — “Use reliability metric for annotation quality.”
+Corpus cleaning — pembersihan data korpus — “Corpus cleaning to remove noise.”
+Transcription conventions — konvensi transkripsi (pauses, overlaps) — “Adopt consistent transcription conventions.”
+Orthographic normalization — normalisasi ejaan — “Apply orthographic normalization for variants.”
+Phonetic transcription — transkripsi fonetik — “Add phonetic transcription for speech data.”
+IPA (International Phonetic Alphabet) — alfabet fonetik internasional — “Use IPA in phonetic transcriptions.”
+Prosodic features — fitur intonasi, tekanan, tempo — “Annotate prosodic features for emphasis.”
+Disfluency — kegagapan bicara (uh, erm) — “Mark disfluencies in transcripts.”
+Backchannel — umpan balik singkat pendengar (uh-huh) — “Identify backchannel tokens.”
+Overlap — bicara bersamaan antar pembicara — “Annotate overlap sections.”
+Turn-taking — sistem pergantian bicara — “Analyze turn-taking patterns among crew.”
+Speech act — fungsi ujaran (request, command) — “Classify speech acts in engine room communication.”
+Directive — ujaran perintah/arah — “Directive speech acts common during manoeuvres.”
+Commissive — pernyataan janji atau kesepakatan — “Record commissive acts during maintenance planning.”
+Representative — pernyataan fakta — “Tag representative utterances in corpus.”
+Expressive — ungkapan emosional — “Mark expressive tokens for sentiment study.”
+Phatic — ujar sapa atau penjaga hubungan sosial — “Identify phatic expressions in greetings.”
+Discourse marker — kata penanda wacana (well, so) — “Annotate discourse markers for coherence studies.”
+Pragmatics — studi makna konteks penggunaan — “Consider pragmatics in directive interpretation.”
+Corpus metadata — data tentang sumber, waktu, konteks — “Store corpus metadata for reproducibility.”
+Speaker ID — identifikasi pembicara — “Assign unique speaker ID to each crew member.”
+Channel separation — pemisahan saluran audio (mic/line) — “Record channel separation for clarity.”
+Sampling rate — frekuensi pengambilan sampel audio — “Use 44.1 kHz sampling rate.”
+Bit depth — resolusi digital audio — “Record at 16-bit depth minimum.”
+Noise reduction — pengurangan kebisingan pada rekaman — “Apply noise reduction sparingly.”
+Annotation tool — perangkat lunak anotasi (e.g., ELAN, Praat) — “Use ELAN as annotation tool.”
+Corpus distribution — cara pendistribusian korpus — “Define corpus distribution license.”
+Data licensing — lisensi penggunaan data — “Choose data licensing terms for public release.”
+Attribution — pengakuan sumber/data — “Provide proper attribution for corpus use.”
+Open corpus — korpus dengan akses terbuka — “Consider open corpus for academic use.”
+Controlled corpus — korpus terbatas aksesnya — “Keep controlled corpus for privacy reasons.”
+Annotated corpus — korpus beranotasi — “Publish annotated corpus with documentation.”
+Raw corpus — korpus mentah sebelum anotasi — “Archive raw corpus securely.”
+Derived data — data turunan dari analisis korpus — “Store derived data with provenance.”
+Provenance — jejak asal-usul data — “Document provenance for all datasets.”
+Reproducibility — kemampuan mengulang hasil penelitian — “Ensure reproducibility of corpus studies.”
+Interoperability — kemampuan kompatibel antar format — “Export corpus in interoperable formats (XML, JSON).”
+Export format — format ekspor (CSV, XML, JSON) — “Provide export format options for users.”
+API access — akses data melalui API — “Offer API access to corpus for research.”
+User license — lisensi pemakaian pengguna — “Define user license terms clearly.”
+Attribution required — syarat pencantuman sumber — “Attribution required when citing corpus.”
+Non-commercial use — penggunaan non-komersial — “Restrict corpus to non-commercial use if needed.”
+Embargo — penundaan publikasi data — “Apply embargo period before open release.”
+Anonymised transcripts — transkrip tanpa identitas — “Release anonymised transcripts for sharing.”
+Data citation — cara merujuk dataset — “Provide data citation format including DOI.”
+Corpus maintenance — pemeliharaan korpus berkelanjutan — “Plan corpus maintenance schedule.”
+Versioning — kontrol versi dataset — “Implement versioning for corpus releases.”
+User feedback loop — mekanisme masukan pengguna — “Establish user feedback loop for improvements.”
+Sustainability of corpus — kelangsungan jangka panjang korpus — “Secure funding for sustainability of corpus.”
+        `;
+
+        let dictionaryData = [];
+
+        /**
+         * Mem-parsing data mentah menjadi array objek yang terstruktur.
+         */
+        function parseData(dataString) {
+            const lines = dataString.split('\n');
+            const data = [];
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine) continue; // Lewati baris kosong
+
+                const parts = trimmedLine.split(' — ');
+                if (parts.length >= 2) { // Minimal harus ada istilah dan terjemahan
+                    data.push({
+                        term: parts[0].replace(/\*+/g, '').trim(), // Bersihkan '*'
+                        translation: parts[1].trim(),
+                        example: (parts[2] || '').trim() // Tangani jika contoh tidak ada
+                    });
+                }
+            }
+            return data;
+        }
+
+        /**
+         * Fungsi untuk menyorot (highlight) teks yang cocok dengan filter.
+         * @param {string} text - Teks asli.
+         * @param {string} filter - Teks filter.
+         * @returns {string} - Teks dengan HTML highlight.
+         */
+        function highlightText(text, filter) {
+            if (!filter) return text;
+            const regex = new RegExp(`(${filter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        /**
+         * Merender daftar kamus ke dalam DOM.
+         * @param {string} filter - Teks untuk memfilter daftar.
+         */
+        function renderDictionary(filter = '') {
+            const listContainer = document.getElementById('dictionary-list');
+            const noResultsEl = document.getElementById('no-results');
+            listContainer.innerHTML = '';
+            const lowerFilter = filter.toLowerCase();
+
+            const filteredData = dictionaryData.filter(entry =>
+                entry.term.toLowerCase().includes(lowerFilter) ||
+                entry.translation.toLowerCase().includes(lowerFilter) ||
+                entry.example.toLowerCase().includes(lowerFilter)
+            );
+
+            // Urutkan berdasarkan istilah (term)
+            filteredData.sort((a, b) => a.term.localeCompare(b.term));
+
+            if (filteredData.length === 0) {
+                noResultsEl.classList.remove('hidden');
+            } else {
+                noResultsEl.classList.add('hidden');
+            }
+
+            let htmlToRender = '';
+            for (const entry of filteredData) {
+                htmlToRender += `
+                <div class="bg-white p-5 rounded-lg shadow border border-gray-200 transition duration-200 hover:shadow-md">
+                    <!-- Istilah (Inggris) -->
+                    <h2 class="text-xl font-semibold text-blue-700">
+                        ${highlightText(entry.term, filter)}
+                    </h2>
+                    
+                    <!-- Terjemahan (Indonesia) -->
+                    <p class="text-md text-gray-800 mt-1">
+                        ${highlightText(entry.translation, filter)}
+                    </p>
+                    
+                    <!-- Contoh Kalimat (Corpus) -->
+                    ${entry.example ? `
+                    <blockquote class="text-sm text-gray-600 italic mt-3 border-l-4 border-gray-200 pl-3">
+                        ${highlightText(entry.example, filter)}
+                    </blockquote>
+                    ` : ''}
+                </div>
+                `;
+            }
+            listContainer.innerHTML = htmlToRender;
+        }
+
+        // --- Event Listeners ---
+
+        // Saat halaman selesai dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Parse data
+            dictionaryData = parseData(rawData);
+            
+            // 2. Render seluruh daftar kamus
+            renderDictionary();
+
+            // 3. Tambahkan event listener ke search bar
+            const searchInput = document.getElementById('search-input');
+            searchInput.addEventListener('input', (e) => {
+                renderDictionary(e.target.value);
+            });
+        });
+    </script>
+
+</body>
+</html>
